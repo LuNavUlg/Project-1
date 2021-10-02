@@ -52,8 +52,8 @@ def loss_function(theta, X):
     sum = 0
     N = np.shape(X)
     for i in range(N):
-        sum = sum + log((conditional_propabilty_of_positive_class(X[i], theta))
-    return -(1/N)*sum
+        sum = sum + log((conditional_propabilty_of_positive_class(X[i], theta)))
+    return -sum/N
 
 class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
 
