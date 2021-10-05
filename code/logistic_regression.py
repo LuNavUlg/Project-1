@@ -15,8 +15,9 @@ from data import make_balanced_dataset, make_unbalanced_dataset
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
+from sklearn.model_selection import train_test_split, cross_val_score
 
-def conditional_propabilty_of_positive_class(x, theta):
+def conditional_propability_of_positive_class(x, omega0, omega):
     """Computes conditional probability of sample x belonging to the positive
         class knowing parameter theta and data sample X[i, :]
 
@@ -34,25 +35,24 @@ def conditional_propabilty_of_positive_class(x, theta):
         class knowing parameter theta and data sample X[i, :]
     """
 
-    w_0 = theta[0] # real value
-    w = theta[1] # vector
-
-    p = 1/(1+exp(-w_0 - np.dot(np.transpose(w), x)))
+    p = 1/(1+math.exp(-omega0 - np.dot(np.transpose(omega), x)))
     return p
 
-def gradient_of_loss_function(X, theta):
+def gradient_of_loss_function(X, omega0, omega):
     sum = 0
     N = np.shape(X)
-    for i in range(N):
-        x_prime = np.transpose(np.append(1, X[i]))
-        sum = sum + (conditional_propabilty_of_positive_class(X[i], )-y[i])*x_prime[i]
-    return (1/N)*sum
+    x_prime = []
+    for i in range(N[0]):
+        x_prime = np.append(x_prime, np.transpose(np.append(X[i], 1)))
+        sum = sum + np.dot((conditional_propability_of_positive_class(X[i], omega0, omega)-y[i]), x_prime[i])
 
-def loss_function(theta, X):
+    return sum/N[0]
+
+def loss_function(X, omega0, omega):
     sum = 0
     N = np.shape(X)
     for i in range(N):
-        sum = sum + log((conditional_propabilty_of_positive_class(X[i], theta)))
+        sum = sum + np.log((conditional_propability_of_positive_class(X[i], omega0, omega)))
     return -sum/N
 
 class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
@@ -97,23 +97,38 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         # TODO insert your code here
 
         # Gradient descent to compute possible values of theta
-        theta = []
+        omega0s = [] # vector of real values of omega0
+        omegas = [] # list of vectors
+        omega0_old  = 1
+        omega_old = (1, 1)
+
         for i in range(self.n_iter):
-            theta_new = theta_old - self.learning_rate*gradient_loss(theta_old)
-            np.append(theta, theta_new)
-            theta_old = theta_new
+            omega0_new = omega0_old - self.learning_rate*gradient_of_loss_function(X, omega0_old, omega_old) # Computes new value w_0
+            omega_new = omega_old - self.learning_rate*gradient_of_loss_function(X, omega0_old, omega_old) # Computes new values w
+
+            omega0s.append(omega0_new)
+            omegas.append(omega_new)
+
+            omega0_old  = omega0_new
+            omega_old = omega_new
 
         # Now compute loss function for all values of theta
         loss_functions = []
-        for theta_val in theta:
-            np.append(loss_functions, loss_function(theta_val, X))
+        for i in range(self.n_iter):
+            omega0 = omega0s[i]
+            omega = omegas[i]
+            value = gradient_of_loss_function(X, omega0, omega)
+            loss_functions.append(value)
 
         # Find minimum loss function
-        min_index = argmin(loss_functions)
+        min_index = np.argmin(loss_functions)
         # Find corresponding theta value
-        optimal_theta = theta[min_index]
+        optimal_omega0 = omega0s[min_index]
+        optimal_omega = omegas[min_index]
 
-        self.BaseEstimator.set_params(optimal_theta)
+        optimal_theta = [optimal_omega0, optimal_omega]
+
+        self.set_params(optimal_theta)
         return self
 
 
@@ -161,4 +176,14 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         pass
 
 if __name__ == "__main__":
-    pass
+
+    # Put your code here
+    n_scores = []
+    X, y = make_unbalanced_dataset(3000)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.33)
+
+    logistic_regression = LogisticRegressionClassifier().fit(X_train, y_train)
+    plot_boundary("logisticR"+str(n), logistic_regression, X, y, mesh_step_size = 0.2, title="Boundary")
+
+    #Compute mean score for corresponding n value and to n_scores vector
+    n_scores.append(np.mean(scores))
