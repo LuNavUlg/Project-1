@@ -17,14 +17,14 @@ from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.model_selection import train_test_split, cross_val_score
 
-def conditional_propability_of_positive_class(x, omega0, omega):
+def conditional_probability_of_positive_class(x, omega0, omega):
     """Computes conditional probability of sample x belonging to the positive
         class knowing parameter theta and data sample X[i, :]
     Parameters
     ----------
     x : vector-like, shape = [n_features]
         The sample.
-    theta : vector-like, [omega_0, omega^T (vetor)]
+    omega0 and omega :
         Parameters of the sigmoïd.
     Returns
     -------
@@ -41,7 +41,7 @@ def gradient_of_loss_function(X, omega0, omega):
     x_prime = []
     for i in range(N[0]):
         x_prime = np.append(x_prime, np.transpose(np.append(X[i], 1)))
-        sum = sum + np.dot((conditional_propability_of_positive_class(X[i], omega0, omega)-y[i]), x_prime[i])
+        sum = sum + np.dot((conditional_probability_of_positive_class(X[i], omega0, omega)-y[i]), x_prime[i])
 
     return sum/N[0]
 
@@ -49,16 +49,16 @@ def loss_function(X, omega0, omega):
     sum = 0
     N = np.shape(X)
     for i in range(N[0]):
-        sum = sum + np.log((conditional_propability_of_positive_class(X[i], omega0, omega)))
-    return -sum/N
+        sum = sum + np.log((conditional_probability_of_positive_class(X[i], omega0, omega)))
+    return -sum/N[0]
 
 class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
 
     def __init__(self, n_iter=10, learning_rate=1):
         self.n_iter = n_iter
         self.learning_rate = learning_rate
-        self.omega0 = 0
-        self.omega = []
+        self.omega0 = None
+        self.omega = None
 
     def fit(self, X, y):
         """Fit a logistic regression models on (X, y)
@@ -141,11 +141,11 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
 
         # TODO insert your code here
         y = []
-        size = np.shape(X)
+        N = np.shape(X)
         proba = self.predict_proba(X)
-        for i in range(size[0]):
-            if proba[i][1] >= 0.5:
-                y.append(1)
+        for i in range(N[0]):
+            if proba[i, 0] >= 0.5:
+                y.append(+1)
             else:
                 y.append(-1)
 
@@ -170,17 +170,22 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         omega0 = self.omega0
         omega = self.omega
 
+        # COL 0 : POSITIVE CLASS -- COL 1 : NEGATIVE CLASS
+        # Warning this has to be coherent with variable proba of predict() method !
         for i in range(N[0]):
-            row = [conditional_propability_of_positive_class(X[i], omega0, omega), 1-conditional_propability_of_positive_class(X[i], omega0, omega)]
+            p = conditional_probability_of_positive_class(X[i], omega0, omega)
+            row = [p, 1-p]
             proba.append(row)
 
         proba = np.array(proba)
         return proba
 
 if __name__ == "__main__":
+
+    # Put your code here
     accuracies = []
     plot = True
-    iteration = 100
+    iteration = 10
     # Put your code here
     for i in range(iteration):
         X, y = make_unbalanced_dataset(3000)
