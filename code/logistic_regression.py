@@ -60,6 +60,8 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, n_iter=10, learning_rate=1):
         self.n_iter = n_iter
         self.learning_rate = learning_rate
+        self.omega0 = 0
+        self.omega = []
 
     def fit(self, X, y):
         """Fit a logistic regression models on (X, y)
@@ -125,12 +127,9 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         optimal_omega0 = omega0s[min_index]
         optimal_omega = omegas[min_index]
 
-        parameters = {'omega0' : optimal_omega0, 'omega' : optimal_omega}
+        self.omega0 = optimal_omega0
+        self.omega = optimal_omega
 
-        # optimal_theta = [optimal_omega0, optimal_omega]
-
-        # self.set_params(**parameters)
-        print(BaseEstimator.get_params(self).keys())
         return self
 
 
@@ -175,11 +174,14 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
             by lexicographic order.
         """
         # TODO insert your code here
+
         proba = []
         size = np.shape(X)
-        omega0, omega = self.BaseEstimator.get_params()
+        omega0 = self.omega0
+        omega = self.omega
+
         for i in range(size[0]):
-            proba[i] = conditional_propabilty_of_positive_class(X[i], omega0, omega)
+            proba.append(conditional_propability_of_positive_class(X[i], omega0, omega))
         return proba
 
 if __name__ == "__main__":
