@@ -48,7 +48,7 @@ def gradient_of_loss_function(X, omega0, omega):
 def loss_function(X, omega0, omega):
     sum = 0
     N = np.shape(X)
-    for i in range(N):
+    for i in range(N[0]):
         sum = sum + np.log((conditional_propability_of_positive_class(X[i], omega0, omega)))
     return -sum/N
 
@@ -111,7 +111,7 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         for i in range(self.n_iter):
             omega0 = omega0s[i]
             omega = omegas[i]
-            value = gradient_of_loss_function(X, omega0, omega)
+            value = loss_function(X, omega0, omega) #plutot loss que gradient of loss
             loss_functions.append(value)
 
         # Find minimum loss function
