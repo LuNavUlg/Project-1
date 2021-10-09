@@ -51,7 +51,7 @@ def gradient_of_loss_function(X, omega0, omega):
 def loss_function(X, omega0, omega):
     sum = 0
     N = np.shape(X)
-    for i in range(N):
+    for i in range(N[0]):
         sum = sum + np.log((conditional_propability_of_positive_class(X[i], omega0, omega)))
     return -sum/N
 
@@ -60,7 +60,6 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, n_iter=10, learning_rate=1):
         self.n_iter = n_iter
         self.learning_rate = learning_rate
-
 
     def fit(self, X, y):
         """Fit a logistic regression models on (X, y)
@@ -117,7 +116,7 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         for i in range(self.n_iter):
             omega0 = omega0s[i]
             omega = omegas[i]
-            value = gradient_of_loss_function(X, omega0, omega)
+            value = loss_function(X, omega0, omega)
             loss_functions.append(value)
 
         # Find minimum loss function
@@ -126,9 +125,12 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         optimal_omega0 = omega0s[min_index]
         optimal_omega = omegas[min_index]
 
-        optimal_theta = [optimal_omega0, optimal_omega]
+        parameters = {'omega0' : optimal_omega0, 'omega' : optimal_omega}
 
-        self.set_params(optimal_theta)
+        # optimal_theta = [optimal_omega0, optimal_omega]
+
+        # self.set_params(**parameters)
+        print(BaseEstimator.get_params(self).keys())
         return self
 
 
@@ -149,9 +151,9 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         # TODO insert your code here
         y = []
         size = np.shape(X)
-        theta = self.BaseEstimator.get_params()
+        proba = self.predict_proba(X)
         for i in range(size[0]):
-            if conditional_propabilty_of_positive_class(X[i], theta) >= 0.5:
+            if proba[i] >= 0.5:
                 y[i] = +1
             else:
                 y[i] = -1
@@ -173,7 +175,12 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
             by lexicographic order.
         """
         # TODO insert your code here
-        pass
+        proba = []
+        size = np.shape(X)
+        omega0, omega = self.BaseEstimator.get_params()
+        for i in range(size[0]):
+            proba[i] = conditional_propabilty_of_positive_class(X[i], omega0, omega)
+        return proba
 
 if __name__ == "__main__":
 
@@ -182,8 +189,7 @@ if __name__ == "__main__":
     X, y = make_unbalanced_dataset(3000)
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.33)
 
-    logistic_regression = LogisticRegressionClassifier().fit(X_train, y_train)
-    plot_boundary("logisticR"+str(n), logistic_regression, X, y, mesh_step_size = 0.2, title="Boundary")
+    logistic_regression = LogisticRegressionClassifier()
+    logistic_regression.fit(X_train, y_train)
 
-    #Compute mean score for corresponding n value and to n_scores vector
-    n_scores.append(np.mean(scores))
+    plot_boundary("logistic_regression", logistic_regression, X, y, mesh_step_size=0.1, title="")
