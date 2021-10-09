@@ -16,7 +16,6 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.linear_model import LogisticRegression
 
 def conditional_propability_of_positive_class(x, omega0, omega):
     """Computes conditional probability of sample x belonging to the positive
@@ -41,7 +40,7 @@ def gradient_of_loss_function(X, omega0, omega):
     N = np.shape(X)
     x_prime = []
     for i in range(N[0]):
-        x_prime = np.append(x_prime, np.transpose(np.append(X[i], 1))) #append ajoute à la fin du vecteur, or dans l'énoncé on doit ajouter comme 1e composante
+        x_prime = np.append(x_prime, np.transpose(np.append(X[i], 1)))
         sum = sum + np.dot((conditional_propability_of_positive_class(X[i], omega0, omega)-y[i]), x_prime[i])
 
     return sum/N[0]
@@ -58,7 +57,8 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, n_iter=10, learning_rate=1):
         self.n_iter = n_iter
         self.learning_rate = learning_rate
-
+        self.omega0 = 0
+        self.omega = []
 
     def fit(self, X, y):
         """Fit a logistic regression models on (X, y)
@@ -74,7 +74,7 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
             Returns self.
         """
         # Input validation
-        X = np.asarray(X, dtype=float)
+        X = np.asarray(X, dtype=np.float)
         if X.ndim != 2:
             raise ValueError("X must be 2 dimensional")
         n_instances, n_features = X.shape
@@ -112,7 +112,7 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         for i in range(self.n_iter):
             omega0 = omega0s[i]
             omega = omegas[i]
-            value = loss_function(X, omega0, omega) #plutot loss que gradient of loss
+            value = loss_function(X, omega0, omega)
             loss_functions.append(value)
 
         # Find minimum loss function
@@ -121,9 +121,9 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         optimal_omega0 = omega0s[min_index]
         optimal_omega = omegas[min_index]
 
-        optimal_theta = [optimal_omega0, optimal_omega]
+        self.omega0 = optimal_omega0
+        self.omega = optimal_omega
 
-        self.set_params(optimal_theta)
         return self
 
 
@@ -144,10 +144,10 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         size = np.shape(X)
         proba = self.predict_proba(X)
         for i in range(size[0]):
-            if proba[i] >= 0.5:
-                y[i] = +1
+            if proba[i][1] >= 0.5:
+                y.append(1)
             else:
-                y[i] = -1
+                y.append(-1)
 
         return y
 
@@ -164,11 +164,17 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
             by lexicographic order.
         """
         # TODO insert your code here
+
         proba = []
-        size = np.shape(X)
-        theta = self.BaseEstimator.get_params()
-        for i in range(size[0]):
-            proba[i] = conditional_propabilty_of_positive_class(X[i], theta)
+        N = np.shape(X)
+        omega0 = self.omega0
+        omega = self.omega
+
+        for i in range(N[0]):
+            row = [conditional_propability_of_positive_class(X[i], omega0, omega), 1-conditional_propability_of_positive_class(X[i], omega0, omega)]
+            proba.append(row)
+
+        proba = np.array(proba)
         return proba
 
 if __name__ == "__main__":
@@ -178,8 +184,8 @@ if __name__ == "__main__":
     X, y = make_unbalanced_dataset(3000)
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.33)
 
-    logistic_regression = LogisticRegression().fit(X_train, y_train)
-    plot_boundary("logisticR"+str(n), logistic_regression, X, y, mesh_step_size = 0.2, title="Boundary")
+    logistic_regression = LogisticRegressionClassifier()
+    logistic_regression.fit(X_train, y_train)
 
-    #Compute mean score for corresponding n value and to n_scores vector
-    n_scores.append(np.mean(scores))
+    plot_boundary("logistic_regression", logistic_regression, X, y, mesh_step_size=0.1, title="")
+    print("Accuracy:", accuracy_score(y_test, logistic_regression.predict(X_test)))
