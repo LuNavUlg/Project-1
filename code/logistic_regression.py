@@ -196,6 +196,6 @@ if __name__ == "__main__":
     X, y = make_unbalanced_dataset(3000)
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.33)
 
-    logistic_regression = LogisticRegressionClassifier().fit(X_train, y_train)
+    logistic_regression = LogisticRegressionClassifier(n_iter = 70).fit(X_train, y_train)
 
     plot_boundary("logistic_regression", logistic_regression, X, y, mesh_step_size=0.1, title="")
