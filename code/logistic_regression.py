@@ -176,12 +176,15 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         # TODO insert your code here
 
         proba = []
-        size = np.shape(X)
+        N = np.shape(X)
         omega0 = self.omega0
         omega = self.omega
 
-        for i in range(size[0]):
-            proba.append(conditional_propability_of_positive_class(X[i], omega0, omega))
+        for i in range(N[0]):
+            row = [conditional_propability_of_positive_class(X[i], omega0, omega), 1-conditional_propability_of_positive_class(X[i], omega0, omega)]
+            proba.append(row)
+
+        proba = np.array(proba)
         return proba
 
 if __name__ == "__main__":
