@@ -8,13 +8,49 @@ Project 1 - Classification algorithms
 
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 from plot import plot_boundary
 from data import make_balanced_dataset, make_unbalanced_dataset
 from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
+from sklearn.model_selection import train_test_split, cross_val_score
 
+def conditional_propability_of_positive_class(x, omega0, omega):
+    """Computes conditional probability of sample x belonging to the positive
+        class knowing parameter theta and data sample X[i, :]
+    Parameters
+    ----------
+    x : vector-like, shape = [n_features]
+        The sample.
+    theta : vector-like, [omega_0, omega^T (vetor)]
+        Parameters of the sigmoïd.
+    Returns
+    -------
+    p : conditional probability of sample x belonging to the positive
+        class knowing parameter theta and data sample X[i, :]
+    """
+
+    p = 1/(1+math.exp(-omega0 - np.dot(np.transpose(omega), x)))
+    return p
+
+def gradient_of_loss_function(X, omega0, omega):
+    sum = 0
+    N = np.shape(X)
+    x_prime = []
+    for i in range(N[0]):
+        x_prime = np.append(x_prime, np.transpose(np.append(X[i], 1)))
+        sum = sum + np.dot((conditional_propability_of_positive_class(X[i], omega0, omega)-y[i]), x_prime[i])
+
+    return sum/N[0]
+
+def loss_function(X, omega0, omega):
+    sum = 0
+    N = np.shape(X)
+    for i in range(N):
+        sum = sum + np.log((conditional_propability_of_positive_class(X[i], omega0, omega)))
+    return -sum/N
 
 class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
 
@@ -25,15 +61,12 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y):
         """Fit a logistic regression models on (X, y)
-
         Parameters
         ----------
         X : array-like, shape = [n_samples, n_features]
             The training input samples.
-
         y : array-like, shape = [n_samples]
             The target values.
-
         Returns
         -------
         self : object
@@ -57,17 +90,48 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
 
         # TODO insert your code here
 
+        # Gradient descent to compute possible values of theta
+        omega0s = [] # vector of real values of omega0
+        omegas = [] # list of vectors
+        omega0_old  = 1
+        omega_old = (1, 1)
+
+        for i in range(self.n_iter):
+            omega0_new = omega0_old - self.learning_rate*gradient_of_loss_function(X, omega0_old, omega_old) # Computes new value w_0
+            omega_new = omega_old - self.learning_rate*gradient_of_loss_function(X, omega0_old, omega_old) # Computes new values w
+
+            omega0s.append(omega0_new)
+            omegas.append(omega_new)
+
+            omega0_old  = omega0_new
+            omega_old = omega_new
+
+        # Now compute loss function for all values of theta
+        loss_functions = []
+        for i in range(self.n_iter):
+            omega0 = omega0s[i]
+            omega = omegas[i]
+            value = gradient_of_loss_function(X, omega0, omega)
+            loss_functions.append(value)
+
+        # Find minimum loss function
+        min_index = np.argmin(loss_functions)
+        # Find corresponding theta value
+        optimal_omega0 = omega0s[min_index]
+        optimal_omega = omegas[min_index]
+
+        optimal_theta = [optimal_omega0, optimal_omega]
+
+        self.set_params(optimal_theta)
         return self
 
 
     def predict(self, X):
         """Predict class for X.
-
         Parameters
         ----------
         X : array-like of shape = [n_samples, n_features]
             The input samples.
-
         Returns
         -------
         y : array of shape = [n_samples]
@@ -75,16 +139,23 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
         """
 
         # TODO insert your code here
-        pass
+        y = []
+        size = np.shape(X)
+        proba = self.predict_proba(X)
+        for i in range(size[0]):
+            if proba[i] >= 0.5:
+                y[i] = +1
+            else:
+                y[i] = -1
+
+        return y
 
     def predict_proba(self, X):
         """Return probability estimates for the test data X.
-
         Parameters
         ----------
         X : array-like of shape = [n_samples, n_features]
             The input samples.
-
         Returns
         -------
         p : array of shape = [n_samples, n_classes]
@@ -92,7 +163,22 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
             by lexicographic order.
         """
         # TODO insert your code here
-        pass
+        proba = []
+        size = np.shape(X)
+        theta = self.BaseEstimator.get_params()
+        for i in range(size[0]):
+            proba[i] = conditional_propabilty_of_positive_class(X[i], theta)
+        return proba
 
 if __name__ == "__main__":
-    pass
+
+    # Put your code here
+    n_scores = []
+    X, y = make_unbalanced_dataset(3000)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.33)
+
+    logistic_regression = LogisticRegressionClassifier().fit(X_train, y_train)
+    plot_boundary("logisticR"+str(n), logistic_regression, X, y, mesh_step_size = 0.2, title="Boundary")
+
+    #Compute mean score for corresponding n value and to n_scores vector
+    n_scores.append(np.mean(scores))
