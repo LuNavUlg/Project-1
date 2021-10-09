@@ -16,6 +16,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.linear_model import LogisticRegression
 
 def conditional_propability_of_positive_class(x, omega0, omega):
     """Computes conditional probability of sample x belonging to the positive
@@ -177,7 +178,7 @@ if __name__ == "__main__":
     X, y = make_unbalanced_dataset(3000)
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.33)
 
-    logistic_regression = LogisticRegressionClassifier().fit(X_train, y_train)
+    logistic_regression = LogisticRegression().fit(X_train, y_train)
     plot_boundary("logisticR"+str(n), logistic_regression, X, y, mesh_step_size = 0.2, title="Boundary")
 
     #Compute mean score for corresponding n value and to n_scores vector
