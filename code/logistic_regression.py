@@ -40,7 +40,7 @@ def gradient_of_loss_function(X, omega0, omega):
     N = np.shape(X)
     x_prime = []
     for i in range(N[0]):
-        x_prime = np.append(x_prime, np.transpose(np.append(X[i], 1)))
+        x_prime = np.append(x_prime, np.transpose(np.append(X[i], 1))) #append ajoute à la fin du vecteur, or dans l'énoncé on doit ajouter comme 1e composante
         sum = sum + np.dot((conditional_propability_of_positive_class(X[i], omega0, omega)-y[i]), x_prime[i])
 
     return sum/N[0]
@@ -73,7 +73,7 @@ class LogisticRegressionClassifier(BaseEstimator, ClassifierMixin):
             Returns self.
         """
         # Input validation
-        X = np.asarray(X, dtype=np.float)
+        X = np.asarray(X, dtype=float)
         if X.ndim != 2:
             raise ValueError("X must be 2 dimensional")
         n_instances, n_features = X.shape
