@@ -22,15 +22,26 @@ from sklearn.model_selection import cross_val_score
 def k_fold_cross_validation(cv):
     n_neighbors = np.array([1, 5, 50, 100, 500])
     scores = []
+    knn_scores = []
     X, y = make_unbalanced_dataset(3000)
 
     for n_neighbor in n_neighbors:
-        knn = KNeighborsClassifier(n_neighbors = n_neighbor)
-        knn_scores = cross_val_score(knn, X, y, cv=cv)
+        for cut in range(cv-1):
+            X_test, y_test = [], []
+            X_training, y_training = [], []
 
-        # We obtain a vector of 10 scores obtained for the 10folds of the data
-            # --> average that score : obtained value gives the avg score for
-            # n_neighbor
+            cut_1, cut_2 = cut*300, (cut+1)*300
+
+            X_test, y_test = X[cut_1:cut_2], y[cut_1:cut_2]
+            X_train_part1, X_train_part2 = X[:cut_1], X[cut_2:]
+            y_train_part1, y_train_part2 = y[:cut_1], y[cut_2:]
+
+            X_training = np.concatenate((X_train_part1, X_train_part2), axis=0)
+            y_training = np.concatenate((y_train_part1, y_train_part2), axis=0)
+
+            fitted_estimator = KNeighborsClassifier(n_neighbors = n_neighbor).fit(X_training, y_training)
+            knn_scores.append(accuracy_score(y_test, fitted_estimator.predict(X_test)))
+
         scores.append(np.mean(knn_scores))
     print("Scores for different values of k : "+str(scores))
     optimal_index = np.argmax(scores)
@@ -74,5 +85,5 @@ if __name__ == "__main__":
     for n_neighbor in n_neighbors:
         fitted_estimator = KNeighborsClassifier(n_neighbors = n_neighbor).fit(X[:1000], y[:1000])
         plot_boundary("n_neighbors"+str(n_neighbor), fitted_estimator, X, y, mesh_step_size = 0.2, title="n_neighbors "+str(n_neighbor))
-    optimal_value_n_neighbors()
+    #optimal_value_n_neighbors()
     k_fold_cross_validation(10)
