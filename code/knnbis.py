@@ -54,22 +54,22 @@ def optimal_value_n_neighbors():
     test_set = 500
     gen = 10
 
-    for train_size in N:
+    for train_set in N:
         mean_test_accuracies = []
         plot_neighbors = []
         for n_neighbor in range(1, test_set + 1, 1):
-            if train_set_size >= n_neighbor:
+            if train_set >= n_neighbor:
                 accuracies = []
-                X, y = make_unbalanced_dataset(test_set + 10*training_set)
-                X_test, y_test = X[10*training_set:], y[10*training_set:]
+                X, y = make_unbalanced_dataset(test_set + 10*train_set)
+                X_test, y_test = X[10*train_set:], y[10*train_set:]
                 for i in range(gen):
-                    train_begin, train_end = train_size*i, train_size*(i + 1),
+                    train_begin, train_end = train_set*i, train_set*(i + 1),
                     X_training, y_training = X[train_begin:train_end], y[train_begin:train_end]
                     fitted_estimator = KNeighborsClassifier(n_neighbors = n_neighbor).fit(X_training, y_training)
                     accuracies.append(accuracy_score(y_test, fitted_estimator.predict(X_test)))
                 mean_test_accuracies.append(np.mean(accuracies))
                 plot_neighbors.append(n_neighbor)
-        plt.plot(plot_neighbors, mean_test_accuracies, label="Training set "+ str(training_set))
+        plt.plot(plot_neighbors, mean_test_accuracies, label="Training set "+ str(train_set))
     plt.xlabel("Number of neighbors")
     plt.ylabel("Accuracies")
     plt.legend(loc='upper right', shadow=True)
@@ -84,5 +84,6 @@ if __name__ == "__main__":
     for n_neighbor in n_neighbors:
         fitted_estimator = KNeighborsClassifier(n_neighbors = n_neighbor).fit(X[:1000], y[:1000])
         plot_boundary("n_neighbors"+str(n_neighbor), fitted_estimator, X, y, mesh_step_size = 0.2, title="n_neighbors "+str(n_neighbor))
-    #optimal_value_n_neighbors()
+    optimal_value_n_neighbors()
     k_fold_cross_validation(10)
+
