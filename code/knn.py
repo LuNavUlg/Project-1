@@ -54,11 +54,11 @@ def optimal_value_n_neighbors():
     test_set = 500
     gen = 10
 
-    for trainµ_set in N:
+    for train_set in N:
         mean_test_accuracies = []
         plot_neighbors = []
         for n_neighbor in range(1, test_set + 1, 1):
-            if trainµ_set >= n_neighbor:
+            if train_set >= n_neighbor:
                 accuracies = []
                 for i in range(gen):
                     X, y = make_unbalanced_dataset(test_set + train_set)
