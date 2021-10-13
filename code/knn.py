@@ -26,7 +26,7 @@ def k_fold_cross_validation(cv):
     X, y = make_unbalanced_dataset(3000)
 
     for n_neighbor in n_neighbors:
-        for cut in range(cv-1):
+        for cut in range(cv):
             X_test, y_test = [], []
             X_training, y_training = [], []
 
@@ -36,8 +36,8 @@ def k_fold_cross_validation(cv):
             X_train_part1, X_train_part2 = X[:cut_1], X[cut_2:]
             y_train_part1, y_train_part2 = y[:cut_1], y[cut_2:]
 
-            X_training = np.concatenate((X_train_part1, X_train_part2), axis=0)
-            y_training = np.concatenate((y_train_part1, y_train_part2), axis=0)
+            X_training = np.concatenate((X_train_part1, X_train_part2))
+            y_training = np.concatenate((y_train_part1, y_train_part2))
 
             fitted_estimator = KNeighborsClassifier(n_neighbors = n_neighbor).fit(X_training, y_training)
             knn_scores.append(accuracy_score(y_test, fitted_estimator.predict(X_test)))
@@ -51,20 +51,19 @@ def k_fold_cross_validation(cv):
 
 def optimal_value_n_neighbors():
     N = np.array([50, 150, 250, 350, 450, 500])
-    n_neighbors = np.array([1, 5, 50, 100, 500])
     test_set = 500
     gen = 10
 
     for training_set in N:
         mean_test_accuracies = []
         plot_neighbors = []
-        for n_neighbor in n_neighbors:
+        for n_neighbor in range(1, test_set + 1, 1):
             if training_set >= n_neighbor:
                 accuracies = []
                 for i in range(gen):
-                    X, y = make_unbalanced_dataset(3000)
+                    X, y = make_unbalanced_dataset(test_set + training_set)
                     X_training, y_training = X[:training_set], y[:training_set]
-                    X_test, y_test = X[test_set:], y[test_set:]
+                    X_test, y_test = X[training_set:], y[training_set:]
                     fitted_estimator = KNeighborsClassifier(n_neighbors = n_neighbor).fit(X_training, y_training)
                     accuracies.append(accuracy_score(y_test, fitted_estimator.predict(X_test)))
                 mean_test_accuracies.append(np.mean(accuracies))
@@ -76,7 +75,6 @@ def optimal_value_n_neighbors():
     plt.savefig("accuracy_training_set"+".pdf")
 
 
-
 if __name__ == "__main__":
     # Put your code here
     X, y = make_unbalanced_dataset(3000)
@@ -85,5 +83,5 @@ if __name__ == "__main__":
     for n_neighbor in n_neighbors:
         fitted_estimator = KNeighborsClassifier(n_neighbors = n_neighbor).fit(X[:1000], y[:1000])
         plot_boundary("n_neighbors"+str(n_neighbor), fitted_estimator, X, y, mesh_step_size = 0.2, title="n_neighbors "+str(n_neighbor))
-    #optimal_value_n_neighbors()
+    optimal_value_n_neighbors()
     k_fold_cross_validation(10)
