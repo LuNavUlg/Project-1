@@ -49,6 +49,8 @@ def evolution_mean_test_accuracies():
     train_sizes = [50, 150, 250, 350, 450, 500]
     gen = 10
 
+    optimal_neighbors = []
+
     for N in train_sizes:
         accuracies_neighbors = []
         n_neighbors = np.arange(1, N+1)
@@ -62,12 +64,18 @@ def evolution_mean_test_accuracies():
                 # Test model
                 accuracies_gens.append(accuracy_score(y_test, knn_estimator.predict(X_test)))
             accuracies_neighbors.append(np.mean(accuracies_gens))
+
+        index = np.argmax(accuracies_neighbors)
+        optimal_neighbors.append(n_neighbors[index])
+
         plt.plot(n_neighbors, accuracies_neighbors)
     plt.legend(['N = 50', 'N = 150', 'N = 250', 'N = 350', 'N = 450', 'N = 500'], loc = 'lower right')
     plt.title("Accuracy with respect to number of neighbors for different training set sizes (N)")
     plt.xlabel("n_neighbors")
     plt.ylabel("Accuracy")
     plt.savefig("accuracy.pdf")
+
+    return optimal_neighbors
 
 
 if __name__ == "__main__":
@@ -94,4 +102,13 @@ if __name__ == "__main__":
         i = i + 1
 
     # Evolution of mean test accuracies
-    evolution_mean_test_accuracies()
+    optimal_neighbors = evolution_mean_test_accuracies()
+
+    # Optimal value of n_neighbors with respect to the training set size
+    train_sizes = ['50', '150', '250', '350', '450', '500']
+
+    plt.bar(train_sizes, optimal_neighbors, width = 0.8)
+    plt.title("Optimal value of n_neighbors with respect to the training set size (N)")
+    plt.xlabel("N")
+    plt.ylabel("n_neighbors")
+    plt.savefig("optimal.pdf")
