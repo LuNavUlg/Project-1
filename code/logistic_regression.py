@@ -39,6 +39,22 @@ def conditional_probability_of_positive_class(x, omega0, omega):
     return p
 
 def gradient_of_loss_function(X, omega0, omega):
+    """Computes conditional probability of sample x belonging to the positive
+        class knowing parameter theta and data sample X[i, :]
+
+    Parameters
+    ----------
+    x : array-like, shape = [n_samples * n_features]
+        The array of samples and their attributes.
+
+    omega0 and omega :
+        Parameters of the sigmoïd.
+
+    Returns
+    -------
+    omega_sum/N, omega0_sum/N : Result of gradient of loss function on the
+        parameters
+    """
     omega_sum = np.array([0.0, 0.0])
     omega0_sum = 0.0
     N = np.shape(X)[0]

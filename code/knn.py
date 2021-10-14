@@ -20,6 +20,19 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 # Put your funtions here
 # ...
 def ten_fold_cross_validation(n_neighbors):
+    """This function computes the optimal number of neighbors by using a 10-fold
+        cross-validation method.
+
+    Parameters
+    -------
+    n_neighbors : vector-like. Contains the different number of neighbors to test
+        the model on.
+    Returns
+    -------
+     n_neighbors[index], scores : the optimal number of neighbors, and the accuracy
+        scores obtained for each number of neighbors.
+
+    """
     # Generate one set
     scores = []
     X, y = make_unbalanced_dataset(3000, random_state = 1)
@@ -45,6 +58,15 @@ def ten_fold_cross_validation(n_neighbors):
     return n_neighbors[index], scores
 
 def evolution_mean_test_accuracies():
+    """This function plots the evolution of mean test accuracies on a fixed
+        test set of size 500 for every possible number of neighbors, for some
+        fixed training sizes over ten generations of the training set.
+
+    Returns
+    -------
+    optimal_neighbors : vector containing the optimal number of neighbors for
+        each size of the training set.
+    """
     X_test, y_test = make_unbalanced_dataset(500, random_state = 1) # Fixed test set
     train_sizes = [50, 150, 250, 350, 450, 500]
     gen = 10
