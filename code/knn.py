@@ -79,7 +79,7 @@ def evolution_mean_test_accuracies():
         for neighbor in n_neighbors:
             accuracies_gens = []
             for i in range(gen):
-                X_train, y_train = make_unbalanced_dataset(N, random_state = i) # Ten different training sets of size N
+                X_train, y_train = make_unbalanced_dataset(N, random_state = i + 1) # Ten different training sets of size N
 
                 # Train model
                 knn_estimator = KNeighborsClassifier(n_neighbors = neighbor).fit(X_train, y_train)
